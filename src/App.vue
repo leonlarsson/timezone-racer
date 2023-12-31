@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from "vue";
-import timezonesImport from "./timezones";
+import { allTimezones, defaultTimezones } from "./timezones";
 const searchInput = ref("");
 const searchInputIsValidTimezone = ref(false);
-const timezones = ref(timezonesImport);
+const timezones = ref(defaultTimezones);
 
 let intervalId: number;
 
@@ -73,8 +73,6 @@ const progressData = computed(() =>
       }
     })
 );
-
-console.log(progressData);
 </script>
 
 <template>
@@ -84,6 +82,21 @@ console.log(progressData);
         <h1 class="font-bold text-4xl">Timezone Racer</h1>
         <h3 class="text-xl">A race to the new year.</h3>
       </div>
+
+      <button
+        class="bg-neutral-200 w-fit p-1 rounded hover:bg-neutral-300"
+        @click="
+          timezones.length > 10
+            ? (timezones = defaultTimezones)
+            : (timezones = allTimezones)
+        "
+      >
+        {{
+          timezones.length > 10
+            ? "Show default timezones"
+            : "Show all timezones"
+        }}
+      </button>
 
       <div class="flex flex-col gap-1">
         <div
