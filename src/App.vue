@@ -76,15 +76,15 @@ const progressData = computed(() =>
 </script>
 
 <template>
-  <main class="container mx-auto py-8">
-    <div class="min-h-[100svh] flex flex-col gap-5">
-      <div class="">
+  <main class="container mx-auto p-8">
+    <div class="min-h-[100svh] flex flex-col gap-3">
+      <div>
         <h1 class="font-bold text-4xl">Timezone Racer</h1>
         <h3 class="text-xl">A race to the new year.</h3>
       </div>
 
       <button
-        class="bg-neutral-200 w-fit p-1 rounded hover:bg-neutral-300"
+        class="bg-neutral-200 border w-fit p-1 hover:bg-neutral-300"
         @click="
           timezones.length > 10
             ? (timezones = defaultTimezones)
@@ -97,6 +97,13 @@ const progressData = computed(() =>
             : "Show all timezones"
         }}
       </button>
+
+      <span
+        >{{ progressData.filter(x => x.progressComplete).length }}/{{
+          progressData.length
+        }}
+        are in the new year.</span
+      >
 
       <div class="flex flex-col gap-1">
         <div
