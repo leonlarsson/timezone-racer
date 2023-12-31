@@ -123,7 +123,13 @@ const progressData = computed(() =>
               v-if="progress > 1 || progress < 0"
               class="underline font-medium"
             >
-              already in {{ new Date().getFullYear() + 1 }}
+              already in
+              {{
+                new Date().toLocaleString("en", {
+                  year: "numeric",
+                  timeZone: timezoneId,
+                })
+              }}
             </span>
 
             <span v-else class="tabular-nums font-medium underline">
@@ -136,7 +142,15 @@ const progressData = computed(() =>
             </span>
 
             <span v-if="progress < 1 && progress > 0">
-              to {{ new Date().getFullYear() + 1 }}
+              to
+              {{
+                new Date(
+                  new Date().toLocaleString("en", {
+                    year: "numeric",
+                    timeZone: timezoneId,
+                  })
+                ).getFullYear() + 1
+              }}
             </span>
           </div>
 
