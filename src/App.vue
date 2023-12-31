@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from "vue";
 import { allTimezones, defaultTimezones } from "./timezones";
-const searchInput = ref("");
+const timezoneAddInput = ref("");
 const searchInputIsValidTimezone = ref(false);
 const timezones = ref(defaultTimezones);
 
@@ -113,7 +113,7 @@ const progressData = computed(() =>
           :key="index"
           :class="{
             '!bg-green-300': progressComplete,
-            '!bg-blue-300': searchInput.trim() === timezoneId,
+            '!bg-blue-300': timezoneAddInput.trim() === timezoneId,
           }"
           class="p-1 bg-neutral-100 select-none border-l-4 border-transparent hover:border-black flex justify-between"
         >
@@ -166,27 +166,31 @@ const progressData = computed(() =>
           type="text"
           class="p-1 bg-neutral-100 select-none border-l-4 border-transparent outline-none"
           :class="{
-            'border-l-transparent': !searchInput,
+            'border-l-transparent': !timezoneAddInput,
             'border-l-green-500': searchInputIsValidTimezone,
             'border-l-red-500': !searchInputIsValidTimezone,
-            '!border-l-blue-300': timezones.find(x => x === searchInput.trim()),
+            '!border-l-blue-300': timezones.find(
+              x => x === timezoneAddInput.trim()
+            ),
           }"
           placeholder="Add timezone"
-          v-model="searchInput"
+          v-model="timezoneAddInput"
           @input="
-            searchInputIsValidTimezone = isValidTimezone(searchInput.trim())
+            searchInputIsValidTimezone = isValidTimezone(
+              timezoneAddInput.trim()
+            )
           "
           @keydown="
             e => {
-              if (e.key === 'Enter' && searchInput.trim()) {
+              if (e.key === 'Enter' && timezoneAddInput.trim()) {
                 if (
-                  !isValidTimezone(searchInput.trim()) ||
-                  timezones.find(x => x === searchInput.trim())
+                  !isValidTimezone(timezoneAddInput.trim()) ||
+                  timezones.find(x => x === timezoneAddInput.trim())
                 )
                   return;
 
-                timezones.push(searchInput.trim());
-                searchInput = '';
+                timezones.push(timezoneAddInput.trim());
+                timezoneAddInput = '';
               }
             }
           "
