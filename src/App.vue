@@ -21,7 +21,7 @@ onUnmounted(() => {
 // This will return false if the timezoneId is invalid
 const isValidTimezone = (timezoneId: string): boolean => {
   try {
-    new Date().toLocaleString(undefined, {
+    new Date().toLocaleString("en", {
       timeZone: timezoneId,
     });
     return true;
@@ -31,14 +31,14 @@ const isValidTimezone = (timezoneId: string): boolean => {
 };
 
 const getNewYear = (timezoneId: string): Date => {
-  const now = new Date().toLocaleString(undefined, { timeZone: timezoneId });
+  const now = new Date().toLocaleString("en", { timeZone: timezoneId });
   const date = new Date(now);
   return new Date(date.getFullYear(), 0, 1);
 };
 
 const getProgress = (timezoneId: string): number => {
   const newYear = getNewYear(timezoneId);
-  const currentTime = new Date().toLocaleString(undefined, {
+  const currentTime = new Date().toLocaleString("en", {
     timeZone: timezoneId,
   });
 
