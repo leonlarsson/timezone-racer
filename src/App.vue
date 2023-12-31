@@ -56,9 +56,25 @@ const getProgress = (timezoneId: string): number => {
   return timeLeftDecimal;
 };
 
-const progress = computed(() =>
-  timezones.value.map(timezoneId => getProgress(timezoneId))
+const progressData = computed(() =>
+  timezones.value
+    .map(timezoneId => ({
+      timezoneId,
+      progress: getProgress(timezoneId),
+      progressComplete: getProgress(timezoneId) < 0,
+    }))
+    .sort((a, b) => {
+      if (a.progressComplete && !b.progressComplete) {
+        return -1;
+      } else if (!a.progressComplete && b.progressComplete) {
+        return 1;
+      } else {
+        return b.progress - a.progress;
+      }
+    })
 );
+
+console.log(progressData);
 </script>
 
 <template>
@@ -71,18 +87,20 @@ const progress = computed(() =>
 
       <div class="flex flex-col gap-1">
         <div
-          v-for="(timezoneId, index) in timezones"
+          v-for="(
+            { timezoneId, progress, progressComplete }, index
+          ) in progressData"
           :key="index"
           :class="{
-            'bg-green-300': progress[index] < 0,
-            'bg-blue-300': searchInput.trim() === timezoneId,
+            '!bg-green-300': progressComplete,
+            '!bg-blue-300': searchInput.trim() === timezoneId,
           }"
           class="p-1 bg-neutral-100 select-none border-l-4 border-transparent hover:border-black flex justify-between"
         >
           <div>
             {{ timezoneId }} is
             <span
-              v-if="progress[index] > 1 || progress[index] < 0"
+              v-if="progress > 1 || progress < 0"
               class="underline font-medium"
             >
               already in {{ new Date().getFullYear() + 1 }}
@@ -93,18 +111,18 @@ const progress = computed(() =>
                 new Intl.NumberFormat("en", {
                   style: "percent",
                   maximumFractionDigits: 5,
-                }).format(progress[index])
+                }).format(progress)
               }}
             </span>
 
-            <span v-if="progress[index] < 1 && progress[index] > 0">
+            <span v-if="progress < 1 && progress > 0">
               to {{ new Date().getFullYear() + 1 }}
             </span>
           </div>
 
           <button
             class="mr-2 font-bold hover:underline"
-            @click="timezones.splice(index, 1)"
+            @click="timezones = timezones.filter(x => x !== timezoneId)"
           >
             X
           </button>
@@ -117,7 +135,7 @@ const progress = computed(() =>
             'border-l-transparent': !searchInput,
             'border-l-green-500': searchInputIsValidTimezone,
             'border-l-red-500': !searchInputIsValidTimezone,
-            'border-l-blue-300': timezones.find(x => x === searchInput.trim()),
+            '!border-l-blue-300': timezones.find(x => x === searchInput.trim()),
           }"
           placeholder="Add timezone"
           v-model="searchInput"
