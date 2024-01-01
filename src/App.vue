@@ -161,7 +161,7 @@ const progressData = computed(() =>
               timezoneAddInput.trim().toLowerCase() ===
               timezoneId.toLowerCase(),
           }"
-          class="p-1 bg-neutral-100 select-none border-l-4 border-transparent hover:border-black flex justify-between"
+          class="p-1 bg-neutral-100 border-l-4 border-transparent hover:border-black flex justify-between"
         >
           <div class="flex justify-between w-full flex-wrap">
             <div>
