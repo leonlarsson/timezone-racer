@@ -103,6 +103,17 @@ const progressData = computed(() =>
 </script>
 
 <template>
+  <!-- Local progress -->
+  <div
+    class="h-1 bg-green-500"
+    :style="{
+      width:
+        progressData.find(
+          x => x.timezoneId === Intl.DateTimeFormat().resolvedOptions().timeZone
+        )?.progressPercentage ?? '0%',
+    }"
+  />
+
   <main class="container mx-auto p-8">
     <div class="min-h-[100svh] flex flex-col gap-3">
       <div>
