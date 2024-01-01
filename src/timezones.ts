@@ -6,7 +6,7 @@ export const defaultTimezones = [
   "Europe/London",
   "Europe/Berlin",
   "Australia/Sydney",
-];
+].sort((a, b) => a.localeCompare(b));
 
 // https://timeapi.io/api/TimeZone/AvailableTimeZones
 // Smaller list (if you go by just ID): https://nodatime.org/TimeZones?version=2023d&format=json
@@ -606,4 +606,4 @@ export const allTimezones = [
   "W-SU",
   "WET",
   "Zulu",
-];
+].sort((a, b) => a.localeCompare(b));
