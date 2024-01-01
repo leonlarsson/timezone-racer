@@ -69,7 +69,11 @@ const progressData = computed(() =>
       } else if (!a.progressComplete && b.progressComplete) {
         return 1;
       } else {
-        return b.progress - a.progress;
+        if (a.progress === b.progress) {
+          return a.timezoneId.localeCompare(b.timezoneId);
+        } else {
+          return b.progress - a.progress;
+        }
       }
     })
 );
