@@ -1,6 +1,9 @@
+<!-- TODO: Get all time data from server instead? -->
+
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from "vue";
 import { allTimezones, defaultTimezones } from "./timezones";
+import { TIME } from "./constants";
 const timezoneAddInput = ref("");
 const searchInputIsValidTimezone = ref(false);
 const timezones = ref(defaultTimezones);
@@ -36,44 +39,64 @@ const getNewYear = (timezoneId: string): Date => {
   return new Date(date.getFullYear(), 0, 1);
 };
 
-const getProgress = (timezoneId: string): number => {
+const getProgress = (
+  timezoneId: string
+): {
+  currentDate: string;
+  progressDecimal: number;
+  progressMilliseconds: number;
+} => {
   const newYear = getNewYear(timezoneId);
-  const currentTime = new Date().toLocaleString("en", {
+
+  const currentDate = new Date().toLocaleString("en", {
     timeZone: timezoneId,
   });
 
-  // Next year
-  const nextYear = new Date(newYear.getFullYear() + 1, 0, 1);
+  // Progress so far in milliseconds
+  const progressMilliseconds =
+    new Date(currentDate).getTime() - newYear.getTime();
 
-  // Time until next year in milliseconds
-  const timeLeftMilliseconds =
-    nextYear.getTime() - new Date(currentTime).getTime();
+  // Progress so far in decimal
+  const progressDecimal = progressMilliseconds / TIME.YEAR;
+  console.log(progressMilliseconds, TIME.YEAR);
 
-  // Progress until next year
-  const timeLeftDecimal =
-    1 - timeLeftMilliseconds / (1000 * 60 * 60 * 24 * 365);
-
-  return timeLeftDecimal;
+  return { currentDate, progressDecimal, progressMilliseconds };
 };
 
 const progressData = computed(() =>
   timezones.value
-    .map(timezoneId => ({
-      timezoneId,
-      progress: getProgress(timezoneId),
-      progressComplete: getProgress(timezoneId) < 0,
-    }))
+    .map(timezoneId => {
+      const { currentDate, progressDecimal, progressMilliseconds } =
+        getProgress(timezoneId);
+
+      return {
+        timezoneId,
+        currentDate,
+        progressDecimal,
+        progressPercentage: new Intl.NumberFormat("en", {
+          style: "percent",
+          maximumFractionDigits: 5,
+        }).format(progressDecimal),
+        progressMilliseconds: progressMilliseconds,
+        currentYear: new Date().toLocaleString("en", {
+          year: "numeric",
+          timeZone: timezoneId,
+        }),
+        nextYear:
+          new Date(
+            new Date().toLocaleString("en", {
+              year: "numeric",
+              timeZone: timezoneId,
+            })
+          ).getFullYear() + 1,
+        lessThanADayHasPassed: progressMilliseconds < TIME.DAY,
+      };
+    })
     .sort((a, b) => {
-      if (a.progressComplete && !b.progressComplete) {
-        return -1;
-      } else if (!a.progressComplete && b.progressComplete) {
-        return 1;
+      if (a.progressDecimal === b.progressDecimal) {
+        return a.timezoneId.localeCompare(b.timezoneId);
       } else {
-        if (a.progress === b.progress) {
-          return a.timezoneId.localeCompare(b.timezoneId);
-        } else {
-          return b.progress - a.progress;
-        }
+        return b.progressDecimal - a.progressDecimal;
       }
     })
 );
@@ -84,7 +107,10 @@ const progressData = computed(() =>
     <div class="min-h-[100svh] flex flex-col gap-3">
       <div>
         <h1 class="font-bold text-4xl">Timezone Racer</h1>
-        <h3 class="text-xl">A race to the new year.</h3>
+        <h3 class="text-xl">
+          A race to the new year. Counter to next year starts after it has been
+          a day.
+        </h3>
       </div>
 
       <button
@@ -102,64 +128,72 @@ const progressData = computed(() =>
         }}
       </button>
 
-      <span
-        >{{ progressData.filter(x => x.progressComplete).length }}/{{
-          progressData.length
-        }}
-        are in the new year.</span
-      >
+      <!-- TODO: Something to display how many timezones are in x years x in year1, y, in year2 etc -->
+      <div class="flex gap-x-4 flex-wrap">
+        <span v-for="year in ['2024', '2025'].sort()">
+          <span class="font-mono">
+            {{ progressData.filter(x => x.currentYear === year).length }}/{{
+              progressData.length
+            }}
+          </span>
+          in {{ year }}
+        </span>
+      </div>
 
       <div class="flex flex-col gap-1">
         <div
           v-for="(
-            { timezoneId, progress, progressComplete }, index
+            {
+              timezoneId,
+              currentDate,
+              progressPercentage,
+              progressMilliseconds,
+              currentYear,
+              nextYear,
+              lessThanADayHasPassed,
+            },
+            index
           ) in progressData"
           :key="index"
           :class="{
-            '!bg-green-300': progressComplete,
-            '!bg-blue-300': timezoneAddInput.trim() === timezoneId,
+            '!bg-green-300': progressMilliseconds < TIME.DAY,
+            '!bg-blue-300':
+              timezoneAddInput.trim().toLowerCase() ===
+              timezoneId.toLowerCase(),
           }"
           class="p-1 bg-neutral-100 select-none border-l-4 border-transparent hover:border-black flex justify-between"
         >
-          <div>
-            {{ timezoneId }} is
-            <span
-              v-if="progress > 1 || progress < 0"
-              class="underline font-medium"
-            >
-              already in
-              {{
-                new Date().toLocaleString("en", {
-                  year: "numeric",
-                  timeZone: timezoneId,
-                })
-              }}
-            </span>
+          <div class="flex justify-between w-full flex-wrap">
+            <div>
+              {{ timezoneId }}
 
-            <span v-else class="tabular-nums font-medium underline">
-              {{
-                new Intl.NumberFormat("en", {
-                  style: "percent",
-                  maximumFractionDigits: 5,
-                }).format(progress)
-              }}
-            </span>
+              <!-- If less than a day has passed in the current year (we have just hit the new year) -->
+              <span v-if="lessThanADayHasPassed" class="underline font-medium">
+                made it to
+                {{ currentYear }}
+              </span>
 
-            <span v-if="progress < 1 && progress > 0">
-              to
-              {{
-                new Date(
-                  new Date().toLocaleString("en", {
-                    year: "numeric",
-                    timeZone: timezoneId,
-                  })
-                ).getFullYear() + 1
-              }}
-            </span>
+              <!-- If more than a day has passed in the current year (we have not hit the new year) -->
+              <span v-else>
+                is
+                <span class="tabular-nums font-medium underline">
+                  {{ progressPercentage }}
+                </span>
+              </span>
+
+              <span v-if="!lessThanADayHasPassed">
+                to
+                <span class="font-semibold">
+                  {{ nextYear }}
+                </span>
+              </span>
+            </div>
+
+            <span class="tabular-nums">{{ currentDate }}</span>
           </div>
 
           <button
-            class="mr-2 font-bold hover:underline"
+            class="mx-3 font-bold hover:underline"
             @click="timezones = timezones.filter(x => x !== timezoneId)"
           >
             X
@@ -174,7 +208,7 @@ const progressData = computed(() =>
             'border-l-green-500': searchInputIsValidTimezone,
             'border-l-red-500': !searchInputIsValidTimezone,
             '!border-l-blue-300': timezones.find(
-              x => x === timezoneAddInput.trim()
+              x => x.toLowerCase() === timezoneAddInput.trim().toLowerCase()
             ),
           }"
           placeholder="Add timezone"
@@ -189,7 +223,10 @@ const progressData = computed(() =>
               if (e.key === 'Enter' && timezoneAddInput.trim()) {
                 if (
                   !isValidTimezone(timezoneAddInput.trim()) ||
-                  timezones.find(x => x === timezoneAddInput.trim())
+                  timezones.find(
+                    x =>
+                      x.toLowerCase() === timezoneAddInput.trim().toLowerCase()
+                  )
                 )
                   return;
 
