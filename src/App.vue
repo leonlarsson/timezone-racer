@@ -177,6 +177,16 @@ const progressData = computed(() =>
           <div class="flex">
             <div class="flex justify-between w-full flex-wrap">
               <div>
+                <span
+                  v-if="
+                    timezoneId ===
+                    Intl.DateTimeFormat().resolvedOptions().timeZone
+                  "
+                  class="font-semibold"
+                >
+                  🏠
+                </span>
+
                 {{ timezoneId }}
 
                 <!-- If less than a day has passed in the current year (we have just hit the new year) -->
