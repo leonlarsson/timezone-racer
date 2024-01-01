@@ -161,43 +161,59 @@ const progressData = computed(() =>
               timezoneAddInput.trim().toLowerCase() ===
               timezoneId.toLowerCase(),
           }"
-          class="p-1 bg-neutral-100 border-l-4 border-transparent hover:border-black flex justify-between"
+          class="group p-1 bg-neutral-100 border-l-4 border-transparent hover:border-black flex-col justify-between"
         >
-          <div class="flex justify-between w-full flex-wrap">
-            <div>
-              {{ timezoneId }}
+          <div class="flex">
+            <div class="flex justify-between w-full flex-wrap">
+              <div>
+                {{ timezoneId }}
 
-              <!-- If less than a day has passed in the current year (we have just hit the new year) -->
-              <span v-if="lessThanADayHasPassed" class="underline font-medium">
-                made it to
-                {{ currentYear }}
-              </span>
-
-              <!-- If more than a day has passed in the current year (we have not hit the new year) -->
-              <span v-else>
-                is
-                <span class="tabular-nums font-medium underline">
-                  {{ progressPercentage }}
+                <!-- If less than a day has passed in the current year (we have just hit the new year) -->
+                <span
+                  v-if="lessThanADayHasPassed"
+                  class="underline font-medium"
+                >
+                  made it to
+                  {{ currentYear }}
                 </span>
-              </span>
 
-              <span v-if="!lessThanADayHasPassed">
-                to
-                <span class="font-semibold">
-                  {{ nextYear }}
+                <!-- If more than a day has passed in the current year (we have not hit the new year) -->
+                <span v-else>
+                  is
+                  <span class="tabular-nums font-medium underline">
+                    {{ progressPercentage }}
+                  </span>
                 </span>
-              </span>
+
+                <span v-if="!lessThanADayHasPassed">
+                  to
+                  <span class="font-semibold">
+                    {{ nextYear }}
+                  </span>
+                </span>
+              </div>
+
+              <span class="tabular-nums">{{ currentDate }}</span>
             </div>
 
-            <span class="tabular-nums">{{ currentDate }}</span>
+            <button
+              class="mx-3 font-bold hover:underline"
+              @click="timezones = timezones.filter(x => x !== timezoneId)"
+            >
+              X
+            </button>
           </div>
 
-          <button
-            class="mx-3 font-bold hover:underline"
-            @click="timezones = timezones.filter(x => x !== timezoneId)"
-          >
-            X
-          </button>
+          <!-- Progress bar -->
+          <!-- <div
+            class="bg-transparent h-[2px] group-hover:bg-green-500"
+            :style="{
+              width: new Intl.NumberFormat('en', {
+                style: 'percent',
+                maximumFractionDigits: 5,
+              }).format(progressDecimal),
+            }"
+          /> -->
         </div>
 
         <input
