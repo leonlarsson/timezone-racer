@@ -58,7 +58,6 @@ const getProgress = (
 
   // Progress so far in decimal
   const progressDecimal = progressMilliseconds / TIME.YEAR;
-  console.log(progressMilliseconds, TIME.YEAR);
 
   return { currentDate, progressDecimal, progressMilliseconds };
 };
