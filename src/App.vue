@@ -4,9 +4,13 @@
 import { computed, ref, onMounted, onUnmounted } from "vue";
 import { allTimezones, defaultTimezones } from "./timezones";
 import { TIME } from "./constants";
+const searchParams = new URLSearchParams(location.search);
+const timezones = ref(
+  searchParams.get("show") === "all" ? allTimezones : defaultTimezones
+);
+const timezoneSearchInput = ref(searchParams.get("q") ?? "");
 const timezoneAddInput = ref("");
 const searchInputIsValidTimezone = ref(false);
-const timezones = ref(defaultTimezones);
 
 let intervalId: number;
 
@@ -20,6 +24,22 @@ onMounted(() => {
 onUnmounted(() => {
   clearInterval(intervalId);
 });
+
+const setSearchParams = (params: { name: string; value: string }[]) => {
+  params.forEach(({ name, value }) => {
+    if (value) {
+      searchParams.set(name, value);
+    } else {
+      searchParams.delete(name);
+    }
+  });
+
+  window.history.replaceState(
+    null,
+    "",
+    `${searchParams.size ? "?" : "/"}${searchParams}`
+  );
+};
 
 // This will return false if the timezoneId is invalid
 const isValidTimezone = (timezoneId: string): boolean => {
@@ -91,6 +111,11 @@ const progressData = computed(() =>
         lessThanADayHasPassed: progressMilliseconds < TIME.DAY,
       };
     })
+    .filter(x =>
+      x.timezoneId
+        .toLowerCase()
+        .includes(timezoneSearchInput.value.toLowerCase())
+    )
     .sort((a, b) => {
       if (a.progressDecimal === b.progressDecimal) {
         return a.timezoneId.localeCompare(b.timezoneId);
@@ -123,12 +148,19 @@ const progressData = computed(() =>
         </h3>
       </div>
 
+      <!-- TODO: Make this a boolean instead -->
       <button
         class="bg-neutral-200 border w-fit p-1 hover:bg-neutral-300"
         @click="
-          timezones.length > 10
-            ? (timezones = defaultTimezones)
-            : (timezones = allTimezones)
+          {
+            timezones.length > 10
+              ? (timezones = defaultTimezones)
+              : (timezones = allTimezones);
+
+            setSearchParams([
+              { name: 'show', value: timezones.length > 10 ? 'all' : '' },
+            ]);
+          }
         "
       >
         {{
@@ -138,7 +170,15 @@ const progressData = computed(() =>
         }}
       </button>
 
-      <div class="flex gap-x-4 flex-wrap">
+      <input
+        type="text"
+        placeholder="Search"
+        class="p-2 bg-neutral-100 select-none"
+        v-model="timezoneSearchInput"
+        @input="setSearchParams([{ name: 'q', value: timezoneSearchInput }])"
+      />
+
+      <div v-if="progressData.length > 0" class="flex gap-x-4 flex-wrap">
         <span
           v-for="year in [
             ...new Set(progressData.map(x => x.currentYear)),
@@ -155,6 +195,7 @@ const progressData = computed(() =>
 
       <div class="flex flex-col gap-1">
         <div
+          v-if="progressData.length > 0"
           v-for="(
             {
               timezoneId,
@@ -237,6 +278,23 @@ const progressData = computed(() =>
               }).format(progressDecimal),
             }"
           /> -->
+        </div>
+
+        <div v-else>
+          No timezones matching
+          <button
+            class="font-semibold hover:underline"
+            @click="
+              {
+                timezoneAddInput = timezoneSearchInput;
+                searchInputIsValidTimezone = isValidTimezone(
+                  timezoneAddInput.trim()
+                );
+              }
+            "
+          >
+            {{ timezoneSearchInput }}
+          </button>
         </div>
 
         <input
