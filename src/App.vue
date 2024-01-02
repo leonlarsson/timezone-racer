@@ -138,9 +138,12 @@ const progressData = computed(() =>
         }}
       </button>
 
-      <!-- TODO: Something to display how many timezones are in x years x in year1, y, in year2 etc -->
       <div class="flex gap-x-4 flex-wrap">
-        <span v-for="year in ['2024', '2025'].sort()">
+        <span
+          v-for="year in [
+            ...new Set(progressData.map(x => x.currentYear)),
+          ].sort()"
+        >
           <span class="font-mono">
             {{ progressData.filter(x => x.currentYear === year).length }}/{{
               progressData.length
